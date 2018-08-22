@@ -6,17 +6,26 @@ import com.jmatio.types.MLChar;
 import com.jmatio.types.MLDouble;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Field {
 
+    enum Part {PART1, PART2, PART3, PART4, PART5};
+
     static Field[] fields = {
+            //TO RUN ONE field at a time
+            new Field("I280_ts", Type.DOUBLE_SPECTRA,"spectral280nm", Part.PART2),
+            new Field("I340_ts", Type.DOUBLE_SPECTRA,"spectral340nm", Part.PART3),
+            new Field("Ivis_ts", Type.DOUBLE_SPECTRA,"spectrabroadband", Part.PART4),
+            new Field("Idark_ts", Type.DOUBLE_SPECTRA,"darkspectra", Part.PART5),
+            //above plus all but I_ts below
             new Field("bin_gleason_score", Type.DOUBLE, "gleason_score"),
             new Field("bin_index", Type.DOUBLE, "bin_index"),
             new Field("check_flag", Type.CELL, "check_flag"),
             new Field("core_gleason_score", Type.DOUBLE,"core_gleason", "core_id"),  //core level
             new Field("core_id", Type.CELL, "core_id"),
             new Field("I_ts", Type.DOUBLE_SPECTRA,
-                    "spectral280nm,spectral340nm,spectrabroadband,darkspectra"),  //uses spectra
+                "spectral280nm,spectral340nm,spectrabroadband,darkspectra", (Part)null),  //uses spectra
             new Field("ivv_bin", Type.DOUBLE, "id"),
             new Field("ivv_core", Type.DOUBLE_TRANSPOSED, null,  "core_id"), //UNCLEAR..appears unused
             new Field("ivv_validIndex", Type.DOUBLE, null), //UNCLEAR..appears unused
@@ -40,16 +49,26 @@ public class Field {
     String name;
     String source;
     String priorMatchSource;
+    Part part;
 
     Field(String name, Type type, String source) {
-        this(name, type, source, null);
+        this(name, type, source, Part.PART1);
+    }
+
+    Field(String name, Type type, String source, Part part) {
+        this(name, type, source, null, part);
     }
 
     Field(String name, Type type, String source, String priorMatchSource) {
+        this(name, type, source, priorMatchSource, Part.PART1);
+    }
+
+    Field(String name, Type type, String source, String priorMatchSource, Part part) {
         this.name = name;
         this.type = type;
         this.source = source;
         this.priorMatchSource = priorMatchSource;
+        this.part = part;
     }
 
     Object getObject() {
@@ -137,7 +156,9 @@ public class Field {
                 //these are the spectral
                 String[] types = source.split(",");
                 ArrayList<ArrayList<double[]>> spectralMap = (ArrayList<ArrayList<double[]>>) out;
-                MLCell spectraCells = new MLCell(name, new int[]{1, 4});
+                //MLCell spectraCells = new MLCell(name, new int[]{1, 4});
+                //CHANGE HERE!!!
+                MLCell spectraCells = new MLCell(name, new int[]{1, types.length});
                 for (int i = 0; i < types.length; i++) {
                     ArrayList<double[]> spectra = spectralMap.get(i);
                     double[][] spectralMatrix = new double[spectra.size()][];
